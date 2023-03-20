@@ -1,20 +1,28 @@
-import { Factory, useEffect, useState } from 'react';
-import axios from 'axios';
+import { useEffect, useState } from 'react';
 import { Container } from 'semantic-ui-react';
 import { Activity } from './models/activity';
 import NavBar from './NavBar';
 import Activitydashboard from '../../features/activities/dashboard/ActivityDashboard';
 import {v4 as uuid} from 'uuid';
+import agent from './API/Agent';
+import LoadingComponent from './LoadingComponents';
 
 function App() {
   const [activities, setActivities] = useState<Activity[]>([]);
   const [selectedActivity, setSelectedActivity] = useState<Activity | undefined>(undefined); // adding new states, useState can be of type Activity or undefined, its init state is undefined
   const [editMode, setEditMode] = useState(false);
+  const [laoding, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    axios.get<Activity[]>('http://localhost:5000/api/activities') // this returns a promies()response, we need to specify what we want to do with this response data
-    .then(response => { //.then takes as an argument callback function
-      setActivities(response.data);
+    agent.Activities.list().then(response => { //.then takes as an argument callback function
+      let activities: Activity[] = [];
+      response.forEach(activity => {
+        activity.date = activity.date.split('T')[0];
+        activities.push(activity);
+      })
+      setActivities(activities);
+      setLoading(false);
     }) // without dependencies useEffect will loop indefinitely
   }, [])
 
@@ -36,16 +44,35 @@ function App() {
   }
   
   function handleCreateOrEditActivity(activity: Activity) {
-    activity.id 
-      ? setActivities([...activities.filter(x => x.id !== activity.id), activity]) // in this case we are editing an existing activity 
-      : setActivities([...activities, {...activity, id: uuid()}]) // in this case we are creating the new activity, we are adding this new activit after the ,(coma) to the array of
-    setEditMode(false);
-    setSelectedActivity(activity); // after new activity has been created/edite we display the details
+    setSubmitting(true);
+    if (activity.id) {
+      agent.Activities.update(activity).then(() => {
+        setActivities([...activities.filter(x => x.id !== activity.id), activity])
+        setSelectedActivity(activity);
+        setEditMode(false);
+        setSubmitting(false);
+      })
+    }
+    else {
+      activity.id = uuid();
+      agent.Activities.create(activity).then(() => {
+        setActivities([...activities, activity])
+        setSelectedActivity(activity);
+        setEditMode(false);
+        setSubmitting(false);
+      })
+    }
   }
 
   function handleDeleteActivity(id: string) {
-    setActivities([...activities.filter(x => x.id !== id)])
+    setSubmitting(true);
+    agent.Activities.delete(id).then(() => {
+      setActivities([...activities.filter(x => x.id !== id)]);
+      setSubmitting(false);
+    })
   }
+
+  if (laoding) return <LoadingComponent content='Loading app'/>
 
   return (
     <>
@@ -61,6 +88,7 @@ function App() {
           closeForm={handleFormClose}
           createOrEdit={handleCreateOrEditActivity}
           deleteActivity={handleDeleteActivity}
+          submitting={submitting}
           /> 
         </Container>
     </>
