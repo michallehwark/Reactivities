@@ -1,27 +1,22 @@
-import { useEffect, useState } from 'react';
 import { Container } from 'semantic-ui-react';
 import NavBar from './NavBar';
-import Activitydashboard from '../../features/activities/dashboard/ActivityDashboard';
-import LoadingComponent from './LoadingComponents';
-import { useStore } from '../stores/store';
 import { observer } from 'mobx-react-lite';
+import { Outlet, useLocation } from 'react-router-dom';
+import HomePage from '../../features/home/HomePage';
 
 function App() {
-
-  const {activityStore} = useStore();
-
-  useEffect(() => {
-    activityStore.loadActivities();
-  }, [activityStore]) // in [] we pass the dependencies
-
-  if (activityStore.loadingInitial) return <LoadingComponent content='Loading app'/>
+  const location = useLocation();
 
   return (
     <>
-        <NavBar />
-        <Container style={{marginTop: '7em'}}>
-          <Activitydashboard />  
-        </Container>
+        {location.pathname === '/' ? <HomePage /> : (
+          <>
+            <NavBar />
+            <Container style={{marginTop: '7em'}}>
+            <Outlet />
+            </Container>
+          </>
+        )}
     </>
   );
 }// Here we need to specify the interface for the properties that we are passing App.tsx to dashboard
