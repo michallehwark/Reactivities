@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Application.Activities;
 using Persistence;
+using Microsoft.AspNetCore.Authorization;
 
 namespace API.Controllers
 {
@@ -15,7 +16,7 @@ namespace API.Controllers
         {
             return HandleResult(await Mediator.Send(new List.Query()));
         }
-
+        
         [HttpGet("{id}")] // api/activities/1da523f (some (Guid)Id )
         public async Task<IActionResult> GetActivity(Guid id)
         {
