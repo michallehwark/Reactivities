@@ -1,5 +1,5 @@
 import { makeAutoObservable, runInAction } from "mobx";
-import { User, UserFormValues } from "../layout/models/user";
+import { User, UserFormValues } from "../models/user";
 import agent from "../layout/API/Agent";
 import { store } from "./store";
 import { router } from "../router/Routes";

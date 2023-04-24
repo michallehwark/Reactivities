@@ -2,8 +2,8 @@ import axios, { AxiosError, AxiosResponse } from 'axios'
 import { toast } from 'react-toastify';
 import { router } from '../../router/Routes';
 import { store } from '../../stores/store';
-import { Activity } from '../models/activity';
-import { User, UserFormValues } from '../models/user';
+import { Activity, ActivityFormValues } from '../../models/activity';
+import { User, UserFormValues } from '../../models/user';
 import { config } from 'process';
 
 const sleep = (delay: number) => {
@@ -71,10 +71,10 @@ const requests = {
 const Activities = {
     list: () => requests.get<Activity[]>('/activities'), // this is base URL + whatever we pass in this request
     details: (id: string) => requests.get<Activity>(`activities/${id}`),
-    create: (activity: Activity) => requests.post<void>('/activities', activity),
-    update: (activity: Activity) => requests.put<void>(`/activities/${activity.id}`, activity),
-    delete: (id: string) => axios.delete<void>(`/activities/${id}`)
-    // delete: (id: string) => requests.del<void>(`/activities/${id}`)
+    create: (activity: ActivityFormValues) => requests.post<void>('/activities', activity),
+    update: (activity: ActivityFormValues) => requests.put<void>(`/activities/${activity.id}`, activity),
+    delete: (id: string) => requests.del<void>(`/activities/${id}`),
+    attend: (id: string) => requests.post<void>(`/activities/${id}/attend`, {})
 }
 
 const Account = {
