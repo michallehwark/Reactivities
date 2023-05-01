@@ -33,6 +33,22 @@ namespace API.Extensions
                             ValidateIssuer = false,
                             ValidateAudience = false
                         };
+                        opt.Events = new JwtBearerEvents
+                        {
+                            OnMessageReceived = context =>
+                            {   // because we dont make hhtpRequests in SignalR we need to get the authentication token differently
+                                var accessToken = context.Request.Query["access_token"];
+                                // ["access_token"] spelling here is important
+                                // clinet side of SignalR will pass token in a Query string and a key for that query string will be called ["access_token"]
+                                var path = context.HttpContext.Request.Path;
+                                if (!string.IsNullOrEmpty(accessToken) && (path.StartsWithSegments("/chat"))) // 'chat' is the endpoint for SignalR hub
+                                {
+                                    context.Token = accessToken;
+                                    // because of that inside out hub context we will have to this token
+                                }
+                                return Task.CompletedTask;
+                            }
+                        };
                     });
 
                 services.AddAuthorization(opt =>{

@@ -30,7 +30,11 @@ namespace API.Extensions
             {
                 opt.AddPolicy("CorsPolicy", policy => 
                 {
-                    policy.AllowAnyMethod().AllowAnyHeader().WithOrigins("http://localhost:3000");
+                    policy
+                        .AllowAnyMethod()
+                        .AllowAnyHeader()
+                        .AllowCredentials()
+                        .WithOrigins("http://localhost:3000");
                 });
             });
             services.AddMediatR(typeof(List.Handler)); // it registers all mediator handlers so that it knows where to send notifications/activities taht we are using Mediator for.
@@ -39,6 +43,7 @@ namespace API.Extensions
             services.AddValidatorsFromAssemblyContaining<Create>();
             services.AddHttpContextAccessor();
             services.AddScoped<IUserAccessor, UserAccessor>();
+            services.AddSignalR(); // in Program.cs we specify a route for redirection
             
             return services;
         }

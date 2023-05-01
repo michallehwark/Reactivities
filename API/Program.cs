@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Identity;
 using Domain;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc.Authorization;
+using API.SignalR;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -37,6 +38,7 @@ app.UseAuthentication(); // this has to be before authorization
 app.UseAuthorization();
 
 app.MapControllers();
+app.MapHub<ChatHub>("/chat");
 
 using var scope = app.Services.CreateScope();
 var services = scope.ServiceProvider;
