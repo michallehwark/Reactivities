@@ -5,6 +5,7 @@ import { store } from '../../stores/store';
 import { Activity, ActivityFormValues } from '../../models/activity';
 import { User, UserFormValues } from '../../models/user';
 import { config } from 'process';
+import { PaginatedResult } from '../../models/pagination';
 
 const sleep = (delay: number) => {
     return new Promise((respolve) => {
@@ -16,7 +17,12 @@ axios.defaults.baseURL = 'http://localhost:5000/api';
 
 axios.interceptors.response.use(async response => {
         await sleep(1500);
-        return response;
+        const pagination = response.headers['pagination'];
+        if (pagination) {
+            response.data = new PaginatedResult(response.data, JSON.parse(pagination));
+            return response as AxiosResponse<PaginatedResult<any>>
+        }// if we don't have a pagination header that means its a normal response
+        return response
 }, (error: AxiosError) => {
     const {data, status, config} = error.response as AxiosResponse;
     switch (status) {
@@ -69,7 +75,10 @@ const requests = {
 }
 
 const Activities = {
-    list: () => requests.get<Activity[]>('/activities'), // this is base URL + whatever we pass in this request
+    list: (params: URLSearchParams) => axios.get<PaginatedResult<Activity[]>>('/activities', {params: params})
+    .then(responseBody), // this is base URL + whatever we pass in this request, '?=' enables us to append
+    // in tist becasue we are not using our request methods we need to pass back response body
+    
     details: (id: string) => requests.get<Activity>(`activities/${id}`),
     create: (activity: ActivityFormValues) => requests.post<void>('/activities', activity),
     update: (activity: ActivityFormValues) => requests.put<void>(`/activities/${activity.id}`, activity),

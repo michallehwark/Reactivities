@@ -1,9 +1,9 @@
 import { observer } from 'mobx-react-lite';
 import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { Button, Header, Label, Segment } from 'semantic-ui-react'
+import { Button, Header, Segment } from 'semantic-ui-react'
 import LoadingComponent from '../../../app/layout/LoadingComponents';
-import { Activity, ActivityFormValues } from '../../../app/models/activity';
+import { ActivityFormValues } from '../../../app/models/activity';
 import { useStore } from '../../../app/stores/store';
 import {v4 as uuid} from 'uuid';
 import { Formik, Form } from 'formik';
