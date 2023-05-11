@@ -1,4 +1,4 @@
-import { makeAutoObservable, runInAction } from "mobx"
+import { makeAutoObservable, reaction, runInAction, values } from "mobx"
 import agent from "../layout/API/Agent";
 import { Activity, ActivityFormValues } from "../models/activity";
 import { format } from "date-fns";
@@ -14,14 +14,54 @@ export default class ActivityStore {
     loadingInitial = false;
     pagination: Pagination | null = null;
     pagingParams = new PagingParams();
+    predicate = new Map().set('all', true);
 
     constructor() {
-        makeAutoObservable(this)
+        makeAutoObservable(this);
+
+        reaction(
+            () => this.predicate.keys(), // we can observe key changes and whenever any of the keys change we can react to it
+            () => { // we reset pagingparams, because we dont know what user has been previously looking at, so we will start them at page 1
+                this.pagingParams = new PagingParams();
+                this.activityRegistry.clear();
+                this.loadActivities();
+            }
+        )
     }
 
     setPagingParams = (pagingParams: PagingParams) => {
         this.pagingParams = pagingParams;
     }
+
+    setPredicate = (predicate: string, value: string | Date) => {
+
+        const resetPredicate = () => {
+            this.predicate.forEach((value, key) => {
+                if (key !== 'startDate') this.predicate.delete(key);
+            })
+        }
+
+        switch (predicate) {
+            case 'all':
+                resetPredicate();
+                this.predicate.set('all', true);
+                break;
+            case 'isGoing':
+                resetPredicate();
+                this.predicate.set('isGoing', true);
+                break;
+            case 'isHost':
+                resetPredicate();
+                this.predicate.set('isHost', true);
+                break;
+            case 'startDate':
+                this.predicate.delete('startDate'); // we need to delete this to detect that the values has been changed
+                this.predicate.set('startDate', value);
+        }
+    }
+
+
+    // when we click on 'filter' button we want to update sth in out store and then we want to react to it
 
     // Computed property.
     get activitiesByDate() {
@@ -32,6 +72,16 @@ export default class ActivityStore {
         const params = new URLSearchParams();
         params.append('pageNumber', this.pagingParams.pageNumber .toString()); // 'pageNumber' is a key, then we pass a value, because its a query string we change it to string
         params.append('pageSize', this.pagingParams.pageSize.toString());
+
+        // predicate has a key and value pair, theninside we check if one of keys == startdate from the calendar
+        // we must send this as not a java script object but as a query string parameter we need to convert it into a string
+        this.predicate.forEach((value, key) => {
+            if (key === 'startDate') {
+                params.append(key, (value as Date).toISOString()) // by doing (as Date) we specify what type the value is and we get type safety
+            } else {
+                params.append(key, value);
+            }
+        })
         return params;
     }
 
