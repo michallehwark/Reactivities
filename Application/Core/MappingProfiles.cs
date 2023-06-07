@@ -22,6 +22,9 @@ namespace Application.Core
             CreateMap<Comment, CommentDto>()
                 .ForMember(d => d.DisplayName, o => o.MapFrom(s => s.Author.DisplayName))
                 .ForMember(d => d.Username, o => o.MapFrom(s => s.Author.UserName));
+
+            CreateMap<AppUser, Profiles.Profile>()
+                .ForMember(d => d.Image, o => o.MapFrom(s => s.Photos.FirstOrDefault(x => x.IsMain).Url));
         }
     }
 }
